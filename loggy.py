@@ -64,7 +64,6 @@ def get_command():
       line = raw_input()
       if line == 'exit':
          FLAG = False
-         signal.
 
 if __name__ == '__main__':
    print 'this is a test main'
@@ -76,8 +75,5 @@ if __name__ == '__main__':
    t2 = Thread(target=get_command)
    t2.start()
 
-   signal.pause()
-
    t1.join()
    t2.join()
-
