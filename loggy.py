@@ -21,13 +21,19 @@ TYPE_ERROR = 0
 TYPE_INFO = 1
 TYPE_WARN = 2
 
-tag = 'VsanVcCluster'
+tag = 'VsanVcClusterConfigSystemImpl'
 ERROR_TOKEN = 'ERROR'
 INFO_TOKEN = 'INFO'
 WARN_TOKEN = 'WARN'
 DEBUG_TOKEN = 'DEBUG'
+CRITICAL_TOKEN = 'CRITICAL'
 
 FLAG = True
+
+LAST_COLOR = None
+
+def is_new_log_entry(line):
+   return line.startswith('2015')
 
 def get_line_color(line):
    if line.count(ERROR_TOKEN):
@@ -46,6 +52,7 @@ def println(line, color=Color.WHITE):
 
 def print_file(file):
    global FLAG
+   global LAST_COLOR
    while FLAG:
       where = file.tell()
       line = file.readline()
@@ -54,9 +61,15 @@ def print_file(file):
          time.sleep(1)
          file.seek(where)
       else:
-         if line.count(tag): 
-            color = get_line_color(line)
-            println(line, color) # already has newline
+         if is_new_log_entry(line):
+            if line.count(tag): 
+               color = get_line_color(line)
+               LAST_COLOR = color
+               println(line, color)
+            else:
+               LAST_COLOR = None
+         elif LAST_COLOR:
+            println(line, LAST_COLOR)
 
 def get_command():
    global FLAG
@@ -66,7 +79,9 @@ def get_command():
          FLAG = False
 
 if __name__ == '__main__':
-   print 'this is a test main'
+   print 'Hello!'
+   print 'This is loggy :)'
+   print "You are following: %s" % filename
 
    file = open_file(filename)
    t1 = Thread(target=print_file, args=(file,))
