@@ -105,9 +105,8 @@ if __name__ == '__main__':
    print 'This is loggy :)'
    print "You are following: %s" % FILENAME
 
-   global_stop = False
    mode = MODE_PRINT
-   while not global_stop:
+   while True:
       try:
          mode = mode()
       except KeyboardInterrupt, kb:
