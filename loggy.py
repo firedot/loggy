@@ -71,18 +71,13 @@ def print_file(f):
             println(line, LAST_COLOR)
 
 def mode_print():
-   print
-   print '=================================='
-   print ' You have entered print mode'
-   print '=================================='
+   print 80*'-'
    f = open_file(FILENAME)
    print_file(f)
 
 def mode_command():
    print
-   print '=================================='
-   print ' You have entered command mode'
-   print '=================================='
+   print 80*'-'
    while True:
       stdout.write('[command]: ')
       command = raw_input()
