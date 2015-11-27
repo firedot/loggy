@@ -1,129 +1,147 @@
 #!/usr/bin/python
 
 import os
+import sys
 import time
 from sys import stdout
 from color import Color
-
-from threading import Thread
-
-#Set the filename and open the file
-filename = '/var/log/vmware/vsan-health/vmware-vsan-health-service.log'
+from config import Configuration
 
 def open_file(filename):
-   file = open(filename,'r')
+   f = open(filename,'r')
    file_stats = os.stat(filename)
    file_size = file_stats[6]
-   file.seek(file_size)
-   return file
+   f.seek(file_size)
+   return f
 
-TYPE_ERROR = 0
-TYPE_INFO = 1
-TYPE_WARN = 2
+class LogProcessor(object):
 
-tag = 'VsanVcClusterConfigSystemImpl'
-ERROR_TOKEN = 'ERROR'
-INFO_TOKEN = 'INFO'
-WARN_TOKEN = 'WARN'
-DEBUG_TOKEN = 'DEBUG'
-CRITICAL_TOKEN = 'CRITICAL'
+   def __init__(self, config):
+      self.last_color = None
+      self.filter_list = config.filter_list
+      self.ignore_list = config.ignore_list
+      self.new_log_entry_regex = config.new_log_entry_regex
+      self.color_map = config.color_map.copy()
+      self.default_color = config.default_color
 
-FLAG = True
+   def get_line_color(self, line):
+      result = None
+      for entry, color in self.color_map.iteritems():
+         if entry in line:
+            result = color
+            break
+      else:
+         result = self.default_color
 
-LAST_COLOR = None
+      return result
 
-def is_new_log_entry(line):
-   return line.startswith('2015')
+   def is_new_log_entry(self, line):
+      return line.startswith(self.new_log_entry_regex)
 
-def get_line_color(line):
-   if line.count(ERROR_TOKEN):
-      return Color.RED
-   elif line.count(INFO_TOKEN):
-      return Color.WHITE
-   elif line.count(WARN_TOKEN):
-      return Color.YELLOW
-   elif line.count(DEBUG_TOKEN):
-      return Color.PURPLE
-   else:
-      return Color.WHITE
+   def println(self, line):
+      if self.is_new_log_entry(line):
+         if self.ignore_list and self.contains(line, self.ignore_list):
+            self.last_color = None
+         elif self.filter_list and self.contains(line, self.filter_list) \
+              or not self.filter_list:
+            color = self.get_line_color(line)
+            if color:
+               self.last_color = color
+               self.print_with_color(line, color)
+            else:
+               print line
+         else:
+            self.last_color = None
+      elif self.last_color:
+         self.print_with_color(line, self.last_color)
 
-def println(line, color=Color.WHITE):
-   stdout.write("%s%s%s" % (color, line, Color.RESET))
+   @staticmethod
+   def contains(line, tokens):
+      result = False
+      for token in tokens:
+         if token in line:
+            result = True
+            break
 
-def print_file(file):
-   global FLAG
-   global LAST_COLOR
-   while FLAG:
-      where = file.tell()
-      line = file.readline()
+      return result
+
+   @staticmethod
+   def print_with_color(line, color):
+      stdout.write("%s%s%s" % (color, line, Color.RESET))
+
+def is_new_line(value):
+   return value == '' or value == '\r' or value == '\n' or value == '\r\n'
+
+def print_file(f, log_processor, start_from=None):
+   if start_from:
+      f.seek(start_from)
+
+   while True:
+      where = f.tell()
+      line = f.readline()
 
       if not line:
          time.sleep(1)
-         file.seek(where)
+         f.seek(where)
       else:
-         if is_new_log_entry(line):
-            if line.count(tag):
-               color = get_line_color(line)
-               LAST_COLOR = color
-               println(line, color)
-            else:
-               LAST_COLOR = None
-         elif LAST_COLOR:
-            println(line, LAST_COLOR)
+         log_processor.println(line)
 
-class PrintThread(Thread):
+def mode_print(config):
+   print 80*'-'
+   f = open_file(config.filename)
+   log_processor = LogProcessor(config)
+   print_file(f, log_processor)
 
-   def __init__(self, filename):
-      Thread.__init__(self)
-      self.filename = filename
-      self.kill_received = False
-      self.last_color = None
+def mode_command(config):
+   print
+   print 80*'-'
+   while True:
+      stdout.write('[command]: ')
+      command = raw_input()
+      if command == 'exit':
+         sys.exit(0)
+      elif command == 'resume':
+         return MODE_PRINT
+      elif command == 'config':
+         print config.filename
+         print config.filter
+         print config.new_log_entry_regex
+      elif command.startswith('filename='):
+         config.filename = command.replace('filename=', '', 1)
+      elif command.startswith('filter='):
+         config.filter = command.replace('filter=', '', 1)
+      elif is_new_line(command):
+         continue
+      else:
+         print "\tUnknown command: %s" % command
 
-   def run(self):
-      file = open_file(filename)
-      while not self.kill_received:
-         where = file.tell()
-         line = file.readline()
+   return None
 
-         if not line:
-            time.sleep(1)
-            file.seek(where)
-         else:
-            if is_new_log_entry(line):
-               if line.count(tag):
-                  self.last_color = get_line_color(line)
-                  println(line, self.last_color)
-               else:
-                  self.last_color = None
-            elif self.last_color:
-               println(line, self.last_color)
+MODE_PRINT = mode_print
+MODE_COMMAND = mode_command
 
-def get_command():
-   global FLAG
-   while FLAG:
-      line = raw_input()
-      if line == 'exit':
-         FLAG = False
-
-def signal_handler(signal, frame):
-   print 'CTRL+C'
-   global print_thread
-   print_thread.kill_received = True
-
-print_thread = None
+conf = Configuration()
+conf.filename = '/var/log/vmware/vsan-health/vmware-vsan-health-service.log'
+conf.new_log_entry_regex = '2015'
+conf.filter = 'VsanVcClusterConfigSystemImpl'
 
 if __name__ == '__main__':
    print 'Hello!'
    print 'This is loggy :)'
-   print "You are following: %s" % filename
+   print "You are following: %s" % conf.filename
 
-   import signal
-   signal.signal(signal.SIGINT, signal_handler)
-
-   global print_thread
+   mode = MODE_PRINT
    while True:
-      print 'Starting new thread!'
-      print_thread = PrintThread(filename)
-      print_thread.start()
-      signal.pause()
-      print_thread.join()
+      try:
+         mode = mode(conf)
+      except KeyboardInterrupt, ki:
+         if mode == MODE_COMMAND:
+            print
+            print 80*'-'
+            print 'Bye, bye! :)'
+            sys.exit(0)
+         else:
+            mode = MODE_COMMAND
+      except Exception, ex:
+         print 'Something has gone wrong...'
+         print ex
