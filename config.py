@@ -8,12 +8,6 @@ DEFAULT_IGNORE_LIST = []
 DEFAULT_NEW_LOG_ENTRY_REGEX = None
 DEFAULT_COLOR = Color.WHITE
 
-ERROR_TOKEN = 'ERROR'
-INFO_TOKEN = 'INFO'
-WARN_TOKEN = 'WARN'
-DEBUG_TOKEN = 'DEBUG'
-CRITICAL_TOKEN = 'CRITICAL'
-
 SEPARATOR_TOKEN = ','
 SEPARATOR_TAG_COLOR = '='
 
@@ -33,8 +27,6 @@ class ConfigurationProperty(object):
    NEW_LOG_ENTRY_REGEX = 'new_log_entry_regex'
    COLOR = 'color'
    DEFAULT_COLOR = 'default_color'
-
-
 
 class Configuration(object):
    def __init__(self):
