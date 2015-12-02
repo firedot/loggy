@@ -2,6 +2,8 @@
 
 from color import Color
 
+CONFIG_FILE = '.loggy.cfg'
+
 DEFAULT_FILENAME = None
 DEFAULT_FILTER_LIST = []
 DEFAULT_IGNORE_LIST = []
@@ -20,7 +22,6 @@ COLOR_MAP = {
 }
 
 class ConfigurationProperty(object):
-
    FILENAME = 'filename'
    FILTER_LIST = 'filter_list'
    IGNORE_LIST = 'ignore_list'
@@ -91,3 +92,38 @@ class Configuration(object):
    @staticmethod
    def _tokenize(value):
       return [token.strip() for token in value.split(SEPARATOR_TOKEN)]
+
+from ConfigParser import SafeConfigParser, NoOptionError
+
+class FileConfigurator(object):
+
+   def __init__(self, filename):
+      self._filename = filename
+
+   def get(self):
+      config = Configuration()
+
+      cp = SafeConfigParser()
+      cp.read(self._filename)
+
+      self._load_option(cp, config, 'Basic', ConfigurationProperty.FILENAME)
+      self._load_option(cp, config, 'Basic', ConfigurationProperty.FILTER_LIST)
+      self._load_option(cp, config, 'Basic', ConfigurationProperty.IGNORE_LIST)
+      self._load_option(cp, config, 'Basic', ConfigurationProperty.NEW_LOG_ENTRY_REGEX)
+      self._load_option(cp, config, 'Basic', ConfigurationProperty.DEFAULT_COLOR)
+
+      return config
+
+   @staticmethod
+   def _load_option(config_parser, config, section, option):
+      try:
+         value = config_parser.get(section, option)
+         config.set(option, value)
+      except NoOptionError, noe:
+         pass
+
+   def set(self, configuration):
+      pass
+
+   def save(self):
+      pass
