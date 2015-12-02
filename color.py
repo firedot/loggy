@@ -14,3 +14,10 @@ class Color(object):
    PURPLE = '\033[35m'
    CYAN   = '\033[36m'
    WHITE  = '\033[37m'
+
+   @classmethod
+   def parse(cls, value):
+      if hasattr(cls, value.upper()):
+         return getattr(cls, value.upper())
+      else:
+         raise Exception("No such color: %s" % value)
