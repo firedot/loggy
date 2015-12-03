@@ -5,7 +5,7 @@ import sys
 import time
 from sys import stdout
 from color import Color
-from config import Configuration
+from config import ConfigurationManager
 
 def open_file(filename):
    f = open(filename,'r')
@@ -88,9 +88,11 @@ def print_file(f, log_processor, start_from=None):
 
 def mode_print(config):
    print 80*'-'
+
    f = open_file(config.filename)
    log_processor = LogProcessor(config)
    print_file(f, log_processor)
+
 
 def mode_command(config):
    print
@@ -120,20 +122,22 @@ def mode_command(config):
 MODE_PRINT = mode_print
 MODE_COMMAND = mode_command
 
-conf = Configuration()
-conf.filename = '/var/log/vmware/vsan-health/vmware-vsan-health-service.log'
-conf.new_log_entry_regex = '2015'
-conf.filter = 'VsanVcClusterConfigSystemImpl'
-
 if __name__ == '__main__':
    print 'Hello!'
    print 'This is loggy :)'
-   print "You are following: %s" % conf.filename
+   print 'Loading configuration...'
+   configManager = ConfigurationManager()
+   configManager.load()
+   config = configManager.get()
+   print 'Done'
+
+
+   print "You are following: %s" % config.filename
 
    mode = MODE_PRINT
    while True:
       try:
-         mode = mode(conf)
+         mode = mode(config)
       except KeyboardInterrupt, ki:
          if mode == MODE_COMMAND:
             print
@@ -145,3 +149,4 @@ if __name__ == '__main__':
       except Exception, ex:
          print 'Something has gone wrong...'
          print ex
+         sys.exit(1)
