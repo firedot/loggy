@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
 from color import Color
-
-CONFIG_FILE = '.loggy.cfg'
+from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 
 DEFAULT_FILENAME = None
 DEFAULT_FILTER_LIST = []
@@ -93,16 +92,37 @@ class Configuration(object):
    def _tokenize(value):
       return [token.strip() for token in value.split(SEPARATOR_TOKEN)]
 
-from ConfigParser import SafeConfigParser, NoOptionError
+class ConfigurationManager(object):
+   CONFIG_FILE = '.loggy.cfg'
 
-class FileConfigurator(object):
+   def __init__(self):
+      self._configuration = None
+
+   def load(self):
+      fileConfigurator = FileConfigurator(self.CONFIG_FILE)
+      self._configuration = fileConfigurator.get()
+
+   def get(self):
+      return self._configuration
+
+class Configurator(object):
+   def get(self): pass
+   def update(self, config):pass
+   def set(self, config):pass
+   def save(self):pass
+
+
+class FileConfigurator(Configurator):
 
    def __init__(self, filename):
+      super(FileConfigurator, self).__init__()
       self._filename = filename
 
    def get(self):
       config = Configuration()
+      return self.update(config)
 
+   def update(self, config):
       cp = SafeConfigParser()
       cp.read(self._filename)
 
@@ -119,11 +139,13 @@ class FileConfigurator(object):
       try:
          value = config_parser.get(section, option)
          config.set(option, value)
-      except NoOptionError, noe:
+      except (NoSectionError, NoOptionError):
          pass
 
    def set(self, configuration):
+      # TODO Implement
       pass
 
    def save(self):
+      # TODO Implement
       pass
