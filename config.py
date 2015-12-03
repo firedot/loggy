@@ -2,6 +2,7 @@
 
 from color import Color
 from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
+from os.path import expanduser
 
 DEFAULT_FILENAME = None
 DEFAULT_FILTER_LIST = []
@@ -99,7 +100,8 @@ class ConfigurationManager(object):
       self._configuration = None
 
    def load(self):
-      fileConfigurator = FileConfigurator(self.CONFIG_FILE)
+      file_path = expanduser('~') + '/' + self.CONFIG_FILE
+      fileConfigurator = FileConfigurator(file_path)
       self._configuration = fileConfigurator.get()
 
    def get(self):
