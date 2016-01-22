@@ -59,3 +59,5 @@ target/
 # VIM swap and tmp files
 *~
 *.swp
+
+.idea/
