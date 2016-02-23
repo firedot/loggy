@@ -1,8 +1,12 @@
 #!/usr/bin/python
 
+import time
 from sys import stdout
 
-from color import Color
+from core.color import Color
+from core.config import ConfigurationManager
+from core.mode import Mode
+from util.file_utils import open_file_at
 
 
 class LogProcessor(object):
@@ -59,3 +63,20 @@ class LogProcessor(object):
     def print_with_color(line, color):
         stdout.write("%s%s%s" % (color, line, Color.RESET))
 
+
+class TailMode(Mode):
+    def execute(self):
+
+        config = ConfigurationManager().get()
+        f = open_file_at(config.filename)
+        log_processor = LogProcessor(config)
+
+        while True:
+            where = f.tell()
+            line = f.readline()
+
+            if not line:
+                time.sleep(0.2)
+                f.seek(where)
+            else:
+                log_processor.println(line)

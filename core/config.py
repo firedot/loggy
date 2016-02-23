@@ -1,11 +1,7 @@
 #!/usr/bin/python
 
 
-import sys
-from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
-from os.path import expanduser
-
-from color import Color
+from core.color import Color
 from util.singleton import Singleton
 
 COLOR_MAP = {
@@ -95,28 +91,33 @@ class Configuration(object):
 class ConfigurationManager(object):
     __metaclass__ = Singleton
 
-    CONFIG_FILE = '.loggy.cfg'
-
     def __init__(self):
         self._configuration = None
+        self._configurators = []
 
     def load(self):
-        # 1. Load the initial configuration from the
-        # config file (if exists)
-        file_path = expanduser('~') + '/' + self.CONFIG_FILE
-        file_configurator = FileConfigurator(file_path)
-        self._configuration = file_configurator.get()
+        self._scan()
+        config = Configuration()
+        for configurator in self._configurators:
+            configurator.setup()
+            configurator.update(config)
+        self._configuration = config
 
-        # 2. Update the configuration according to the
-        # command line args
-        args_configurator = ArgsConfigurator(sys.argv)
-        args_configurator.update(self._configuration)
+    def register(self, configurator):
+        self._configurators.append(configurator)
 
     def get(self):
         return self._configuration
 
+    def _scan(self):
+        from importlib import import_module
+        import_module("config")
+
 
 class Configurator(object):
+
+    def setup(self): pass
+
     def get(self): pass
 
     def update(self, config): pass
@@ -124,66 +125,3 @@ class Configurator(object):
     def set(self, config): pass
 
     def save(self): pass
-
-
-class FileConfigurator(Configurator):
-    CATEGORY_BASIC = 'Basic'
-    CATEGORY_COLOR = 'Color'
-
-    def __init__(self, filename):
-        super(FileConfigurator, self).__init__()
-        self._filename = filename
-
-    def get(self):
-        config = Configuration()
-        return self.update(config)
-
-    def update(self, config):
-        cp = SafeConfigParser()
-        cp.read(self._filename)
-
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.FILENAME)
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.FILTER_LIST)
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.IGNORE_LIST)
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.NEW_LOG_ENTRY_REGEX)
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.DEFAULT_COLOR)
-
-        return config
-
-    @staticmethod
-    def _load_option(config_parser, config, section, option):
-        try:
-            value = config_parser.get(section, option)
-            config.set(option, value)
-        except (NoSectionError, NoOptionError):
-            pass
-
-    def set(self, configuration):
-        # TODO Implement
-        pass
-
-    def save(self):
-        # TODO Implement
-        pass
-
-
-class ArgsConfigurator(Configurator):
-    def __init__(self, args):
-        super(ArgsConfigurator, self).__init__()
-        self._args = args
-
-    def update(self, config):
-        # TODO Implement
-        pass
-
-    def get(self):
-        # TODO Implement
-        pass
-
-    def set(self, config):
-        # TODO Implement
-        pass
-
-    def save(self):
-        # TODO Implement
-        pass

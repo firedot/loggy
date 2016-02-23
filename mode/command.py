@@ -1,16 +1,16 @@
 #!/usr/bin/python
 
-from sys import exit
+from sys import stdout, exit
 
+# from command import CommandManager
 from util.singleton import Singleton
+from core.mode import Mode
 
 
 class CommandManager(object):
     __metaclass__ = Singleton
 
     def __init__(self):
-        print '__init__'
-
         if not hasattr(self, '_commands'):
             self._commands = {}
 
@@ -29,7 +29,6 @@ class CommandManager(object):
         return key.strip().lower()
 
     def register(self, command):
-        print "Registering %s" % command.name
         key = self._normalize(command.name)
         self._commands[key] = command
 
@@ -65,3 +64,20 @@ class ExitCommand(Command):
 cm = CommandManager()
 cm.register(ResumeCommand())
 cm.register(ExitCommand())
+
+
+class CommandMode(Mode):
+    def execute(self):
+
+        while True:
+            stdout.write('[command]: ')
+            raw_command = raw_input()
+
+            command = CommandManager().parse(raw_command)
+
+            if command:
+                result = command.execute()
+                if result:
+                    return Modes.PRINT_MODE
+            else:
+                print "\tUnknown command: %s" % raw_command

@@ -12,8 +12,3 @@ def open_file_at(filename, where=None):
 
     f.seek(where)
     return f
-
-
-# TODO Consider remove this method
-def is_new_line(value):
-    return value == '' or value == os.linesep
