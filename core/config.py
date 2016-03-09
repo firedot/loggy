@@ -3,6 +3,9 @@
 
 from core.color import Color
 from util.singleton import Singleton
+import os
+from os import listdir
+from os.path import isfile, join
 
 COLOR_MAP = {
     'CRITICAL': Color.RED,
@@ -105,13 +108,24 @@ class ConfigurationManager(object):
 
     def register(self, configurator):
         self._configurators.append(configurator)
+        print 'Registered: ', configurator.__class__
 
     def get(self):
         return self._configuration
 
     def _scan(self):
-        from importlib import import_module
-        import_module("config")
+        file_path = os.path.realpath(__file__)
+        dir_name = os.path.dirname(file_path)
+        print os.path.dirname(dir_name)
+        dir_name = os.path.realpath('config')
+        print dir_name
+        ff = [f.split('.')[0] for f in listdir(dir_name) if isfile(join(dir_name, f)) and f.endswith('.py')]
+        print ff
+        for f in ff:
+    # for name, obj in inspect.getmembers(args):
+       # if hasattr(obj, '__bases__'):
+          # for c in obj.__bases__:
+             # print c.__module__, c.__name__       __import__('config.' + f)
 
 
 class Configurator(object):

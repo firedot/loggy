@@ -55,5 +55,6 @@ class FileConfigurator(Configurator):
         # TODO Implement
         pass
 
+print 'Iported: ', __file__
 
 ConfigurationManager().register(FileConfigurator())

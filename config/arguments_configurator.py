@@ -3,7 +3,7 @@
 
 import sys
 
-from core.config import Configurator, ConfigurationManager
+from core.config import Configurator
 
 
 class ArgsConfigurator(Configurator):
@@ -29,6 +29,3 @@ class ArgsConfigurator(Configurator):
     def save(self):
         # TODO Implement
         pass
-
-
-ConfigurationManager().register(ArgsConfigurator())
