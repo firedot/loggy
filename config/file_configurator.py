@@ -2,7 +2,7 @@
 
 
 from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
-from os.path import expanduser
+from os.path import expanduser, join
 
 from core.config import Configurator, ConfigurationManager, Configuration, ConfigurationProperty
 
@@ -21,7 +21,7 @@ class FileConfigurator(Configurator):
         self._filepath = None
 
     def setup(self):
-        self._filepath = expanduser('~') + '/' + self._filename
+        self._filepath = join(expanduser('~'),self._filename)
 
     def get(self):
         config = Configuration()
@@ -54,7 +54,3 @@ class FileConfigurator(Configurator):
     def save(self):
         # TODO Implement
         pass
-
-print 'Iported: ', __file__
-
-ConfigurationManager().register(FileConfigurator())

@@ -29,3 +29,5 @@ class ArgsConfigurator(Configurator):
     def save(self):
         # TODO Implement
         pass
+
+    def setup(self): pass
