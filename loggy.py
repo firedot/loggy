@@ -19,6 +19,10 @@ if __name__ == '__main__':
     configManager = ConfigurationManager()
     configManager.load()
     config = configManager.get()
+    if not config:
+        print 'No configuration found...'
+        sys.exit(2)
+
     print 'Done'
 
     print SEPARATOR

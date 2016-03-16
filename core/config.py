@@ -95,23 +95,34 @@ class ConfigurationManager(object):
     __metaclass__ = Singleton
 
     def __init__(self):
-        self._configuration = None
+        self._configuration = {}
         self._configurators = []
 
     def load(self):
         self._scan()
-        config = Configuration()
         for configurator in self._configurators:
             configurator.setup()
-            configurator.update(config)
-        self._configuration = config
+            configs = configurator.get()
+            # TODO [kaleksandrov] This will override existing configurations
+            # with the same name
+            if isinstance(configs, dict):
+                self._configuration.update(configs)
 
     def register(self, configurator):
         self._configurators.append(configurator)
         print 'Registered: ', configurator.__class__.__name__
 
-    def get(self):
-        return self._configuration
+    def get(self, profile=None):
+        if profile:
+            if profile in self._configuration.keys:
+                return self._configuration[profile]
+            else:
+                return None
+        else:
+            if len(self._configuration) == 1:
+                return self._configuration.values()[0]
+            else:
+                return None
 
     def _get_dir(self, dir_name):
         current_file_path = os.path.realpath(__file__)

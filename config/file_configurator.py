@@ -25,7 +25,7 @@ class FileConfigurator(Configurator):
 
     def get(self):
         config = Configuration()
-        return self.update(config)
+        return {'default': self.update(config)}
 
     def update(self, config):
         cp = SafeConfigParser()
