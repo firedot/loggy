@@ -4,7 +4,17 @@
 from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 from os.path import expanduser, join
 
-from core.config import Configurator, ConfigurationManager, Configuration, ConfigurationProperty
+from core.config import Configurator, Configuration
+from core.color import Color
+
+
+class ConfigurationProperty(object):
+    FILENAME = 'filename'
+    FILTER_LIST = 'filter_list'
+    IGNORE_LIST = 'ignore_list'
+    NEW_LOG_ENTRY_REGEX = 'new_log_entry_regex'
+    COLOR = 'color'
+    DEFAULT_COLOR = 'default_color'
 
 
 class FileConfigurator(Configurator):
@@ -23,34 +33,54 @@ class FileConfigurator(Configurator):
     def setup(self):
         self._filepath = join(expanduser('~'),self._filename)
 
-    def get(self):
-        config = Configuration()
-        return {'default': self.update(config)}
+    def get(self, name):
+        return self.update(name, Configuration())
 
-    def update(self, config):
+    def get_all(self):
+        return {'default': self.get('default')}
+
+    def update(self, name, config):
         cp = SafeConfigParser()
         cp.read(self._filename)
 
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.FILENAME)
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.FILTER_LIST)
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.IGNORE_LIST)
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.NEW_LOG_ENTRY_REGEX)
-        self._load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.DEFAULT_COLOR)
+        load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.FILENAME)
+        load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.FILTER_LIST)
+        load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.IGNORE_LIST)
+        load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.NEW_LOG_ENTRY_REGEX)
+        load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.DEFAULT_COLOR)
 
         return config
 
-    @staticmethod
-    def _load_option(config_parser, config, section, option):
-        try:
-            value = config_parser.get(section, option)
-            config.set(option, value)
-        except (NoSectionError, NoOptionError):
-            pass
-
-    def set(self, configuration):
+    def set(self, name, configuration):
         # TODO Implement
         pass
 
     def save(self):
         # TODO Implement
         pass
+
+
+SEPARATOR_TOKEN = ','
+
+
+def tokenize(value):
+    return [token.strip() for token in value.split(SEPARATOR_TOKEN)]
+
+def load_option(config_parser, config, section, option):
+    try:
+        value = config_parser.get(section, option)
+        set_prop(config, option, value)
+    except (NoSectionError, NoOptionError):
+        pass
+
+def set_prop(config, prop, value):
+    if prop == ConfigurationProperty.FILENAME:
+        config.filename = value
+    elif prop == ConfigurationProperty.FILTER_LIST:
+        config.filter_list = tokenize(value)
+    elif prop == ConfigurationProperty.IGNORE_LIST:
+        config.ignore_list = tokenize(value)
+    elif prop == ConfigurationProperty.NEW_LOG_ENTRY_REGEX:
+        config.new_log_entry_regex = value
+    elif prop == ConfigurationProperty.DEFAULT_COLOR:
+        config.default_color = Color.parse(value)
