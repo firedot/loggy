@@ -5,6 +5,7 @@ import sys
 from core.config import ConfigurationManager
 from mode.command import CommandMode
 from mode.tail import TailMode
+from pprint import pprint
 
 SEPARATOR = 80 * '-'
 
@@ -18,10 +19,15 @@ if __name__ == '__main__':
     print 'Loading configuration...'
     configManager = ConfigurationManager()
     configManager.load()
-    config = configManager.get()
-    if not config:
+    configs = configManager.get_all()
+
+    pprint(configs)
+
+    if not configs:
         print 'No configuration found...'
         sys.exit(2)
+    elif len(configs.values()) == 1:
+        config = configs.values()[0]
 
     print 'Done'
 

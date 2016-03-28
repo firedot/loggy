@@ -95,7 +95,7 @@ class ConfigurationManager(object):
     __metaclass__ = Singleton
 
     def __init__(self):
-        self._configuration = {}
+        self._configurations = {}
         self._configurators = []
 
     def load(self):
@@ -106,7 +106,7 @@ class ConfigurationManager(object):
             # TODO [kaleksandrov] This will override existing configurations
             # with the same name
             if isinstance(configs, dict):
-                self._configuration.update(configs)
+                self._configurations.update(configs)
 
     def register(self, configurator):
         self._configurators.append(configurator)
@@ -114,15 +114,17 @@ class ConfigurationManager(object):
 
     def get(self, profile=None):
         if profile:
-            if profile in self._configuration.keys:
-                return self._configuration[profile]
+            if profile in self._configurations.keys:
+                return self._configurations[profile]
             else:
                 return None
         else:
-            if len(self._configuration) == 1:
-                return self._configuration.values()[0]
+            if len(self._configurations) == 1:
+                return self._configurations.values()[0]
             else:
                 return None
+    def get_all(self):
+        return self._configurations
 
     def _get_dir(self, dir_name):
         current_file_path = os.path.realpath(__file__)
