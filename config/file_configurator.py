@@ -34,14 +34,19 @@ class FileConfigurator(Configurator):
         self._filepath = join(expanduser('~'),self._filename)
 
     def get(self, name):
-        return self.update(name, Configuration())
+        config = Configuration()
+        config.name='default'
+        return self.update(name, config)
 
     def get_all(self):
         return {'default': self.get('default')}
 
     def update(self, name, config):
         cp = SafeConfigParser()
-        cp.read(self._filename)
+
+        print self._filepath
+
+        cp.read(self._filepath)
 
         load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.FILENAME)
         load_option(cp, config, self.CATEGORY_BASIC, ConfigurationProperty.FILTER_LIST)
@@ -71,6 +76,7 @@ def load_option(config_parser, config, section, option):
         value = config_parser.get(section, option)
         set_prop(config, option, value)
     except (NoSectionError, NoOptionError):
+        print 'Cannot find the property:', option
         pass
 
 def set_prop(config, prop, value):

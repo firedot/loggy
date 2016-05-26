@@ -31,6 +31,8 @@ if __name__ == '__main__':
 
     print 'Done'
 
+    pprint(config)
+
     print SEPARATOR
     print 'You are using loggy with the following configuration:'
     print "You are following: %s" % config.filename

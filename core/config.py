@@ -6,7 +6,7 @@ from util.singleton import Singleton
 import os
 from os import listdir
 from os.path import isfile, join
-
+from pprint import pprint
 
 COLOR_MAP = {
     'CRITICAL': Color.RED,
@@ -20,14 +20,20 @@ COLOR_MAP = {
 class Configuration(object):
 
     def __init__(self):
+        self.name=None
         self.filename = None
         self.filter_list = []
         self.ignore_list = []
         self.new_log_entry_regex = None
-        self.color_map = {}
-        self.default_color = None
         self.color_map = COLOR_MAP.copy()
         self.default_color = Color.WHITE
+
+    def __str__(self):
+        return "%s(name: %s, filename: %s, filter_list: %s, ignore_list: %s, new_log_entry_regex: %s, default_color: %s)"\
+                % (self.__class__.__name__, self.name, self.filename, self.filter_list, self.ignore_list, self.new_log_entry_regex, self.default_color)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class ConfigurationManager(object):
@@ -44,6 +50,7 @@ class ConfigurationManager(object):
             configs = configurator.get_all()
             # TODO [kaleksandrov] This will override existing configurations
             # with the same name
+            pprint(configs)
             if isinstance(configs, dict):
                 self._configurations.update(configs)
 
