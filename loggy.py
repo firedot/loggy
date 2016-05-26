@@ -2,25 +2,19 @@
 
 import sys
 
-from core.config import ConfigurationManager
-from mode.command import CommandMode
-from mode.tail import TailMode
 from pprint import pprint
+from core.config import configuration_manager
+from core.mode import mode_manager
 
 from util.constants import SEPARATOR
 
-
-class Modes(object):
-    TAIL_MODE = TailMode()
-    COMMAND_MODE = CommandMode()
 
 if __name__ == '__main__':
     print 'Hello!'
     print 'This is loggy :)'
     print 'Loading configuration...'
-    configManager = ConfigurationManager()
-    configManager.load()
-    configs = configManager.get_all()
+    configuration_manager.load()
+    configs = configuration_manager.get_all()
 
     pprint(configs)
 
@@ -40,7 +34,11 @@ if __name__ == '__main__':
     print "Filter: %s" % config.filter_list
     print "New line reges: %s" % config.new_log_entry_regex
 
-    mode = Modes.TAIL_MODE
+
+    mode_manager.load()
+    TAIL_MODE = mode_manager.get('TailMode')
+    COMMAND_MODE = mode_manager.get('CommandMode')
+    mode = TAIL_MODE
 
     while True:
         try:
@@ -48,13 +46,13 @@ if __name__ == '__main__':
             print SEPARATOR
             mode = mode.execute()
         except KeyboardInterrupt:
-            if mode is Modes.COMMAND_MODE:
+            if mode is COMMAND_MODE:
                 print
                 print SEPARATOR
                 print 'Bye, bye! :)'
                 exit(0)
             else:
-                mode = Modes.COMMAND_MODE
+                mode = COMMAND_MODE
         except Exception, ex:
             print 'Something has gone wrong...'
             print ex

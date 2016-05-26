@@ -4,7 +4,7 @@ import time
 from sys import stdout
 
 from core.color import Color
-from core.config import ConfigurationManager
+from core.config import configuration_manager
 from core.mode import Mode
 from util.file_utils import open_file_at
 
@@ -67,9 +67,9 @@ class LogProcessor(object):
 class TailMode(Mode):
     def execute(self):
 
-        config = ConfigurationManager().get()
+        config = configuration_manager.get()
         f = open_file_at(config.filename)
-        log_processor = LogProcessor(config)
+        out = LogProcessor(config)
 
         while True:
             where = f.tell()
@@ -79,4 +79,4 @@ class TailMode(Mode):
                 time.sleep(0.2)
                 f.seek(where)
             else:
-                log_processor.println(line)
+                out.println(line)

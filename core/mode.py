@@ -7,3 +7,14 @@ class Mode(object):
     # user interaction
     def execute(self):
         pass
+
+
+from extension import ExtensionManager
+
+class ModeManager(ExtensionManager):
+
+   def __init__(self):
+       super(ModeManager, self).__init__('mode', Mode)
+
+
+mode_manager = ModeManager()

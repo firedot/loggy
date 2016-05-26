@@ -2,11 +2,12 @@
 
 
 from core.color import Color
-from util.singleton import Singleton
 import os
 from os import listdir
 from os.path import isfile, join
 from pprint import pprint
+from extension import ExtensionManager
+
 
 COLOR_MAP = {
     'CRITICAL': Color.RED,
@@ -35,60 +36,6 @@ class Configuration(object):
     def __repr__(self):
         return self.__str__()
 
-
-configurations= {}
-configurators= []
-
-class ConfigurationManager(object):
-
-    def __init__(self):
-       pass
-
-    def load(self):
-        self._scan()
-        for configurator in configurators
-            configurator.setup()
-            configs = configurator.get_all()
-            # TODO [kaleksandrov] This will override existing configurations
-            # with the same name
-            pprint(configs)
-            if isinstance(configs, dict):
-                configurationsupdate(configs)
-
-    def register(self, configurator):
-        configuratorsappend(configurator)
-        print 'Registered: ', configurator.__class__.__name__
-
-    def get(self, profile=None):
-        if profile:
-            if profile in configurationskeys:
-                return configurationsprofile]
-            else:
-                return None
-        else:
-            if len(_configurations) == 1:
-                return configurationsvalues()[0]
-            else:
-                return None
-    def get_all(self):
-        return configurations
-
-    def _scan(self):
-        dir_name = get_dir('config')
-        listdir(dir_name)
-        ff = [f.split('.')[0] for f in listdir(dir_name) \
-                if isfile(join(dir_name, f)) and f.endswith('.py')]
-        import inspect
-        import imp
-        for f in ff:
-            module = imp.load_source(f, os.path.join(dir_name, f+'.py'))
-            for _, obj in inspect.getmembers(module):
-                if hasattr(obj, '__bases__'):
-                    if Configurator in obj.__bases__ :
-                        self.register(obj())
-
-
-
 class Configurator(object):
 
     def setup(self): pass
@@ -104,8 +51,33 @@ class Configurator(object):
     def save(self): pass
 
 
-def get_dir(dir_name):
-    current_file_path = os.path.realpath(__file__)
-    current_dir_name = os.path.dirname(current_file_path)
-    current_dir_name = os.path.dirname(current_dir_name)
-    return os.path.join(current_dir_name, dir_name)
+class ConfigurationManager(ExtensionManager):
+
+    def __init__(self):
+        super(ConfigurationManager, self).__init__('config', Configurator)
+        self._configurations = {}
+
+    def on_extension_loaded(self, extension):
+        extension.setup()
+        configs = extension.get_all()
+        # TODO [kaleksandrov] This will override existing configurations
+        # with the same name
+        pprint(configs)
+        if isinstance(configs, dict):
+            self._configurations.update(configs)
+
+    def get(self, profile=None):
+        if profile:
+            if profile in self._configurations.keys:
+                return self._configurations[profile]
+            else:
+                return None
+        else:
+            if len(self._configurations) == 1:
+                return self._configurations.values()[0]
+            else:
+                return None
+    def get_all(self):
+        return self._configurations
+
+configuration_manager = ConfigurationManager()
