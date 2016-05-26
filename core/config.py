@@ -36,41 +36,42 @@ class Configuration(object):
         return self.__str__()
 
 
+configurations= {}
+configurators= []
+
 class ConfigurationManager(object):
-    __metaclass__ = Singleton
 
     def __init__(self):
-        self._configurations = {}
-        self._configurators = []
+       pass
 
     def load(self):
         self._scan()
-        for configurator in self._configurators:
+        for configurator in configurators
             configurator.setup()
             configs = configurator.get_all()
             # TODO [kaleksandrov] This will override existing configurations
             # with the same name
             pprint(configs)
             if isinstance(configs, dict):
-                self._configurations.update(configs)
+                configurationsupdate(configs)
 
     def register(self, configurator):
-        self._configurators.append(configurator)
+        configuratorsappend(configurator)
         print 'Registered: ', configurator.__class__.__name__
 
     def get(self, profile=None):
         if profile:
-            if profile in self._configurations.keys:
-                return self._configurations[profile]
+            if profile in configurationskeys:
+                return configurationsprofile]
             else:
                 return None
         else:
-            if len(self._configurations) == 1:
-                return self._configurations.values()[0]
+            if len(_configurations) == 1:
+                return configurationsvalues()[0]
             else:
                 return None
     def get_all(self):
-        return self._configurations
+        return configurations
 
     def _scan(self):
         dir_name = get_dir('config')

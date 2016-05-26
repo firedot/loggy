@@ -7,7 +7,8 @@ from mode.command import CommandMode
 from mode.tail import TailMode
 from pprint import pprint
 
-SEPARATOR = 80 * '-'
+from util.constants import SEPARATOR
+
 
 class Modes(object):
     TAIL_MODE = TailMode()
